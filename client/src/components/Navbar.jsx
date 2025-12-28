@@ -1,13 +1,13 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import './Navbar.css';
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "./Navbar.css";
 
 function Navbar({ user, onLogout }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
     onLogout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -20,19 +20,29 @@ function Navbar({ user, onLogout }) {
 
         <ul className="nav-menu">
           <li className="nav-item">
-            <Link to="/" className="nav-link">Dashboard</Link>
+            <Link to="/" className="nav-link">
+              Dashboard
+            </Link>
           </li>
           <li className="nav-item">
-            <Link to="/clubs" className="nav-link">Clubs</Link>
+            <Link to="/clubs" className="nav-link">
+              Clubs
+            </Link>
           </li>
           <li className="nav-item">
-            <Link to="/members" className="nav-link">Members</Link>
+            <Link to="/members" className="nav-link">
+              Members
+            </Link>
           </li>
           <li className="nav-item">
-            <Link to="/events" className="nav-link">Events</Link>
+            <Link to="/events" className="nav-link">
+              Events
+            </Link>
           </li>
           <li className="nav-item">
-            <Link to="/announcements" className="nav-link">Announcements</Link>
+            <Link to="/announcements" className="nav-link">
+              Announcements
+            </Link>
           </li>
         </ul>
 
