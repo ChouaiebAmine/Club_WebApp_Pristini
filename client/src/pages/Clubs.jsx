@@ -3,33 +3,21 @@ import { Link } from "react-router-dom";
 import { clubsAPI } from "../utils/api";
 import "./Clubs.css";
 
-function Clubs() {
+export default function Clubs() {
   const [clubs, setClubs] = useState([]);
   const [filteredClubs, setFilteredClubs] = useState([]);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
   const [formData, setFormData] = useState({
     name: "",
     category: "",
     description: "",
   });
-
-  const handleSubmit = async () => {
-    try {
-      await clubsAPI.create(formData);
-      setShowModal(false);
-      setFormData({ name: "", category: "", description: "" });
-      fetchClubs(); // refresh list
-    } catch (err) {
-      alert("Failed to create club");
-    }
-  };
-
-  const categories = [];
 
   useEffect(() => {
     fetchClubs();
@@ -37,14 +25,14 @@ function Clubs() {
 
   useEffect(() => {
     filterClubs();
-  }, [search, category, clubs]);
+  }, [search, clubs]);
 
   const fetchClubs = async () => {
     try {
       setLoading(true);
-      const response = await clubsAPI.getAll();
-      setClubs(response.data);
-    } catch (err) {
+      const res = await clubsAPI.getAll();
+      setClubs(res.data);
+    } catch {
       setError("Failed to load clubs");
     } finally {
       setLoading(false);
@@ -52,116 +40,94 @@ function Clubs() {
   };
 
   const filterClubs = () => {
-    let filtered = clubs;
-
-    if (category !== "All") {
-      filtered = filtered.filter((club) => club.category === category);
-    }
-
+    let data = clubs;
     if (search) {
-      filtered = filtered.filter(
-        (club) =>
-          club.name.toLowerCase().includes(search.toLowerCase()) ||
-          club.description?.toLowerCase().includes(search.toLowerCase())
+      data = data.filter(
+        (c) =>
+          c.name.toLowerCase().includes(search.toLowerCase()) ||
+          c.description?.toLowerCase().includes(search.toLowerCase())
       );
     }
-
-    setFilteredClubs(filtered);
+    setFilteredClubs(data);
   };
 
-  if (loading) {
-    return <div className="loading">Loading clubs...</div>;
-  }
+  const openCreate = () => {
+    setEditingId(null);
+    setFormData({ name: "", category: "", description: "" });
+    setShowModal(true);
+  };
+
+  const openEdit = (club) => {
+    setEditingId(club._id);
+    setFormData({
+      name: club.name,
+      category: club.category,
+      description: club.description,
+    });
+    setShowModal(true);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      if (editingId) {
+        await clubsAPI.update(editingId, formData);
+      } else {
+        await clubsAPI.create(formData);
+      }
+      setShowModal(false);
+      setEditingId(null);
+      fetchClubs();
+    } catch {
+      alert("Save failed");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this club?")) return;
+    try {
+      await clubsAPI.delete(id);
+      fetchClubs();
+    } catch {
+      alert("Delete failed");
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="clubs-container">
-      <div className="clubs-header">
-        <h1>Clubs</h1>
-        <p>Manage all student clubs and organizations</p>
-      </div>
+      <h1>Clubs</h1>
 
-      {error && <div className="error">{error}</div>}
+      <input
+        placeholder="Search..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
-      <div className="clubs-controls">
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Search clubs..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="search-input"
-          />
-        </div>
+      <button onClick={openCreate}>+ Add Club</button>
 
-        <div className="category-filters">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              className={`filter-btn ${category === cat ? "active" : ""}`}
-              onClick={() => setCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
-          + Add Club
-        </button>
-      </div>
-
-      {filteredClubs.length === 0 ? (
-        <p className="no-data">No clubs found</p>
-      ) : (
-        <div className="clubs-grid">
-          {filteredClubs.map((club) => (
-            <Link
-              key={club._id}
-              to={`/clubs/${club._id}`}
-              className="club-card-link"
-            >
-              <div className="club-card">
-                <div
-                  className="club-header"
-                  style={{ backgroundColor: club.color }}
-                >
-                  <div className="club-menu">⋮</div>
-                </div>
-                <div className="club-body">
-                  <h3>{club.name}</h3>
-                  <p className="club-category">{club.category}</p>
-                  <p className="club-description">{club.description}</p>
-                  <div className="club-meta">
-                    <span className="club-members">
-                      {" "}
-                      {club.memberCount} members
-                    </span>
-                    <span className="club-schedule">
-                      {" "}
-                      {club.meetingSchedule}
-                    </span>
-                  </div>
-                  <div className="club-president">
-                    President: {club.presidentId?.name || "TBD"}
-                  </div>
-                  <div className="club-actions">
-                    <button className="btn-edit">Edit</button>
-                    <button className="btn-delete">Delete</button>
-                  </div>
-                </div>
-              </div>
+      <div className="clubs-grid">
+        {filteredClubs.map((club) => (
+          <div key={club._id} className="club-card">
+            <Link to={`/clubs/${club._id}`}>
+              <h3>{club.name}</h3>
             </Link>
-          ))}
-        </div>
-      )}
+            <p>{club.category}</p>
+            <p>{club.description}</p>
+
+            <button onClick={() => openEdit(club)}>Edit</button>
+            <button onClick={() => handleDelete(club._id)}>Delete</button>
+          </div>
+        ))}
+      </div>
+
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Add New Club</h2>
+            <h2>{editingId ? "Edit Club" : "Add Club"}</h2>
 
             <input
-              type="text"
-              placeholder="Club name"
+              placeholder="Name"
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
@@ -169,7 +135,6 @@ function Clubs() {
             />
 
             <input
-              type="text"
               placeholder="Category"
               value={formData.category}
               onChange={(e) =>
@@ -185,17 +150,13 @@ function Clubs() {
               }
             />
 
-            <div className="modal-actions">
-              <button onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn-primary" onClick={handleSubmit}>
-                Create
-              </button>
-            </div>
+            <button onClick={() => setShowModal(false)}>Cancel</button>
+            <button onClick={handleSubmit}>
+              {editingId ? "Update" : "Create"}
+            </button>
           </div>
         </div>
       )}
     </div>
   );
 }
-
-export default Clubs;

@@ -31,8 +31,15 @@ export const clubsAPI = {
   create: (data) => api.post('/clubs', data),
   update: (id, data) => api.put(`/clubs/${id}`, data),
   delete: (id) => api.delete(`/clubs/${id}`),
-};
 
+  join: (clubId) => api.post(`/clubs/${clubId}/join`),
+  leave: (clubId) => api.post(`/clubs/${clubId}/leave`),
+};
+export const membersAPI = {
+  getByClub: (clubId) => api.get(`/members/club/${clubId}`),
+  updateRole: (clubId, memberId, role) =>
+    api.put(`/clubs/${clubId}/members/${memberId}/role`, { role }),
+};
 //events API
 export const eventsAPI = {
   getByClub: (clubId) => api.get(`/events/club/${clubId}`),

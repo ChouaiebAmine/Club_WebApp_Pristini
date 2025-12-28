@@ -5,6 +5,7 @@ import connectDB from './config/database.js';
 import authRoutes from './routes/auth.js';
 import clubRoutes from './routes/clubs.js';
 import eventRoutes from './routes/events.js';
+import membersRoutes from "./routes/members.js";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ connectDB();
 app.use('/api/auth', authRoutes);
 app.use('/api/clubs', clubRoutes);
 app.use('/api/events', eventRoutes);
+app.use("/api/members", membersRoutes);
 
 //check endpoint
 app.get('/api/health', (req, res) => {
