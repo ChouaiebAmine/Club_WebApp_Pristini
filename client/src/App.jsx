@@ -8,7 +8,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Navbar from "./components/Navbar";
 import Events from "./pages/Events";
-import EventDetail from "./pages/Eventdetail";
+import EventDetail from "./pages/EventDetail";
 import Members from "./pages/Members";
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
